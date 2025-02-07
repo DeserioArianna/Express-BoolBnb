@@ -1,5 +1,4 @@
-const dbConnection = require("../dbConnection/dbConnecion")
-
+const dbConnecion = require("../dbConnection/dbConnection")
 
 const index = (req, res, next) => {
     const sql = "SELECT * FROM casa"
