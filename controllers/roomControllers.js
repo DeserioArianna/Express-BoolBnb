@@ -157,6 +157,7 @@ const postReview = [
                 console.error("Errore SQL nella ricerca dell'immobile:", err.message);
                 return next(new Error("Errore durante il controllo dell'immobile"));
             }
+            
 
             if (result.length === 0) {
                 return res.status(404).json({
