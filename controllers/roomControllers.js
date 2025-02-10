@@ -1,7 +1,7 @@
 const dbConnection = require("../dbConnection/dbConnection")
 
 const index = (req, res, next) => {
-    const sql = "SELECT * FROM casa"
+    const sql = "SELECT * FROM house"
 
     dbConnection.query(sql, (err, result) => {
         if (err) {
