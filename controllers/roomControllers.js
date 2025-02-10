@@ -3,7 +3,7 @@ const dbConnecion = require("../dbConnection/dbConnection")
 const index = (req, res, next) => {
     const sql = "SELECT * FROM casa"
 
-    dbConnection.query(sql, (err, result) => {
+    dbConnecion.query(sql, (err, result) => {
         if (err) {
            return next(new Error("errore interno del server"))
         }
