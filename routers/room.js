@@ -9,5 +9,8 @@ router.get("/", roomController.index);
 //SHOW
 router.get("/:id", roomController.show);
 
+//MODIFY
+router.patch("/:id", roomController.addLike);
+
 
 module.exports = router;
