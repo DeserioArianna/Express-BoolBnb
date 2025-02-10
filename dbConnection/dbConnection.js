@@ -4,7 +4,7 @@ const connection = mysql.createConnection({
     host : "localhost" ,
     user : "root" ,
     password : "rootroot" ,
-    database : "Boolbnb_db", 
+    database : "boolbnb_db", 
 });
 
 connection.connect((err) => {
