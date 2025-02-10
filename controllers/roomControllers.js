@@ -5,7 +5,7 @@ const index = (req, res, next) => {
 
     dbConnecion.query(sql, (err, result) => {
         if (err) {
-           return next(new Error("errore interno del server"))
+            return next(new Error("errore interno del server"))
         }
         return res.status(200).json({
             status: "success",
@@ -22,7 +22,7 @@ const show = (req, res, next) => {
     dbConnection.query(sql, [id], (err, results) => {
         if (err) {
             return next(new Error("errore interno del server"))
-         }
+        }
         if (results.length === 0) {
             return res.status(404).json({ message: "Immobile non trovato" });
         }
