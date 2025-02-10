@@ -1,15 +1,28 @@
-const errorHandlers = (err, req, res, next) => {
-    const resObj = {
-     status: "fail",
-     message: err.message,
-    };
- 
+const { validationResult } = require("express-validator");
 
-    if("development"){
-        resObj.detail = err.stack
+//Middleware per gestire gli errori di validazione
+const validateInputs = (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({
+            status: "fail",
+            message: "Errore di validazione",
+            errors: errors.array(),
+        });
     }
+    next();
+};
 
-    return res.status(500).json(resObj);
- };
- 
- module.exports = errorHandlers
+//Middleware per gestire errori generici
+const errorHandler = (err, req, res, next) => {
+    console.error("Errore interno del server:", err);
+
+    res.status(500).json({
+        status: "fail",
+        message: "Errore interno del server",
+        detail: err.message,
+    });
+};
+
+//Esportiamo i middleware
+module.exports = { validateInputs, errorHandler };

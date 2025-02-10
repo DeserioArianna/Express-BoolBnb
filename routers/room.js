@@ -12,6 +12,9 @@ router.get("/:id", roomController.show);
 //POST
 router.post("/", roomController.postAppartemento);
 
+//POST di una recensione
+router.post("/:id/review", roomController.postReview)
+
 //MODIFY
 router.patch("/:id", roomController.addLike);
 
