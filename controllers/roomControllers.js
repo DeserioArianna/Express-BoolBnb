@@ -69,7 +69,6 @@ const postAppartemento = [
     body("square_meters").isInt({ min: 10 }).withMessage("I metri quadri devono essere almeno 10"),
     body("address").isString().isLength({ min: 5, max: 255 }).withMessage("L'indirizzo deve avere tra 5 e 255 caratteri"),
     body("email").isEmail().withMessage("L'email non è valida"),
-    body("likes").isInt({ min: 0 }).optional({ nullable: true }).withMessage("I like devono essere un numero intero positivo"),
 
     validateInputs,
 
@@ -90,8 +89,9 @@ const postAppartemento = [
         `;
 
         dbConnection.query(sql, [
-            a.id_property, a.title, a.city, a.descr, a.rooms, a.url_img,
-            a.bedrooms, a.bathrooms, a.square_meters, a.address, a.email, a.likes || 0
+            a.id_property, a.title, a.city, a.descr, a.rooms, a.url_img, 
+            a.bedrooms, a.bathrooms, a.square_meters, a.address, a.email, likes = 0
+
         ], (err, results) => {
             if (err) {
                 console.error("Errore SQL:", err.message);
