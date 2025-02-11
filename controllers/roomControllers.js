@@ -1,9 +1,9 @@
 const dbConnection = require("../dbConnection/dbConnection")
-const {body, validationResult} =require("express-validator")
-const {validateInputs, errorHandler} = require("../middleware/errorsHandlers");
+const { body, validationResult } = require("express-validator")
+const { validateInputs, errorHandler } = require("../middleware/errorsHandlers");
 
 const index = (req, res, next) => {
-    const sql = "SELECT * FROM house"
+    const sql = "SELECT * FROM house ORDER BY likes DESC"
 
     dbConnection.query(sql, (err, result) => {
         if (err) {
@@ -24,7 +24,7 @@ const show = (req, res, next) => {
     SELECT review.*
     FROM review
     JOIN house
-    ON house.id = review.id_casa
+    ON house.id = review.id_house
     WHERE house.id = ?`;
 
     // PRIMA QUERY: Controllo se l'immobile esiste
@@ -45,7 +45,7 @@ const show = (req, res, next) => {
             return res.status(200).json({
                 status: "success",
                 data: {
-                    ...results[0], 
+                    ...results[0],
                     reviews
                 }
             });
@@ -75,6 +75,13 @@ const postAppartemento = [
 
     (req, res, next) => {
         const a = req.body;
+
+        const maiusc = (str) => {
+            return str.charAt(0).toUpperCase() + str.slice(1);
+        }
+        a.city = maiusc(a.city);
+
+
         console.log("Dati ricevuti e validati:", a);
 
         const sql = `
@@ -83,7 +90,7 @@ const postAppartemento = [
         `;
 
         dbConnection.query(sql, [
-            a.id_property, a.title, a.city, a.descr, a.rooms, a.url_img, 
+            a.id_property, a.title, a.city, a.descr, a.rooms, a.url_img,
             a.bedrooms, a.bathrooms, a.square_meters, a.address, a.email, a.likes || 0
         ], (err, results) => {
             if (err) {
@@ -140,7 +147,7 @@ const postReview = [
         }
 
         const houseId = (req.params.id);
-        const { reviewContent, username, lengthOfDay } = req.body; 
+        const { reviewContent, username, lengthOfDay } = req.body;
 
         //Verifica se l'ID della casa è un numero valido
         if (isNaN(houseId) || houseId <= 0) {
@@ -157,7 +164,7 @@ const postReview = [
                 console.error("Errore SQL nella ricerca dell'immobile:", err.message);
                 return next(new Error("Errore durante il controllo dell'immobile"));
             }
-            
+
 
             if (result.length === 0) {
                 return res.status(404).json({
