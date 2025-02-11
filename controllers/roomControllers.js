@@ -16,6 +16,19 @@ const index = (req, res, next) => {
     });
 };
 
+const indexProperty = (req, res, next) => {
+    const sql= "SELECT * FROM property"
+    dbConnection.query(sql, (err, result) => {
+        if(err) {
+            return next(new Error("errore interno del server"))
+        }
+        return res.status(200).json({
+            status: "success",
+            data: result
+        })
+    })
+}
+
 const show = (req, res, next) => {
     const { id } = req.params;
 
@@ -196,5 +209,6 @@ module.exports = {
     store,
     addLike,
     postAppartemento,
-    postReview
+    postReview,
+    indexProperty
 }

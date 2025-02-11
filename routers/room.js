@@ -6,6 +6,9 @@ const router = express.Router();
 //INDEX
 router.get("/", roomController.index);
 
+//INDEX della tipologia di casa
+router.get("/property", roomController.indexProperty)
+
 //SHOW
 router.get("/:id", roomController.show);
 
