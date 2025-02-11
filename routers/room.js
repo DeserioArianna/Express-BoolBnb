@@ -13,7 +13,7 @@ router.get("/property", roomController.indexProperty)
 router.get("/:id", roomController.show);
 
 //RICERCA PER CITTÀ
-router.get("/search/:city", roomController.searchByCity)
+router.get("/search", roomController.searchByCity)
 
 //POST
 router.post("/", roomController.postAppartemento);

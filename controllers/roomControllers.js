@@ -32,7 +32,7 @@ const indexProperty = (req, res, next) => {
 const show = (req, res, next) => {
     const { id } = req.params;
 
-    const sql = `SELECT * FROM house WHERE id = ?;`
+    const sql = `SELECT * FROM house WHERE id = ?`
     const sqlReviews = `
     SELECT review.*
     FROM review
@@ -46,7 +46,7 @@ const show = (req, res, next) => {
             return next(new Error("Errore interno del server"));
         }
         if (results.length === 0) {
-            return res.status(404).json({ message: "Immobile non trovato" });
+            return res.status(404).json({ message: "Immobile non trovato riga 49" });
         }
 
         // SECONDA QUERY: Recupero le recensioni SOLO se l'immobile esiste
@@ -98,7 +98,7 @@ const postAppartemento = [
 
         const sql = `
         INSERT INTO house (id_property, title, city, descr, rooms, url_img, bedrooms, bathrooms, square_meters, address, email, likes)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
 
         dbConnection.query(sql, [
@@ -132,7 +132,7 @@ const addLike = (req, res, next) => {
     const sql = `
     UPDATE ${process.env.DB_DATABASE}.house
     SET likes = likes + 1
-    where id = ?;`
+    where id = ?`
 
     dbConnection.query(sqlEmail, [id], (err, results) => {
         if (err) {
@@ -228,12 +228,49 @@ const postReview = [
 ];
 
 const searchByCity = (req, res, next) => {
-    const { city } = req.params;
+    const { city, bedrooms, bathrooms, id_property } = req.params;
     
 
-    const sql = "SELECT * FROM house WHERE city = ? ORDER BY likes DESC"
+    // city, bedrooms, bathrooms, id_prperty
+
+     const filters = []
+     const values = []
+
+    if (city) {
+        filters.push("city LIKE ?")
+        values.push(`%${city}%`)
+    }
+
+    if (bedrooms) {
+        filters.push("bedrooms >= ?")
+        values.push(parseInt(bedrooms))
+    }
+
+    if (bathrooms) {
+        filters.push("bathrooms >= ?")
+        values.push(parseInt(bathrooms))
+    }
+
+    if (id_property) {
+        filters.push("id_property = ?")
+        values.push(parseInt(id_property))
+    }
+
     
-    dbConnection.query(sql, [city], (err, results) => {
+     
+     const sql = "SELECT * FROM house"
+
+    if (filters.length>0){
+       sql += `WHERE ${filters.join(" AND ")} ORDER BY likes DESC`
+       
+    }
+    
+
+    console.log(sql, filters);
+    
+     
+    
+    dbConnection.query(sql, values, (err, results) => {
         if (err) {
             return next(new Error("Error interno del server"))
         }
