@@ -3,7 +3,7 @@ const {body, validationResult} =require("express-validator")
 const {validateInputs, errorHandler} = require("../middleware/errorsHandlers");
 
 const index = (req, res, next) => {
-    const sql = "SELECT * FROM house"
+    const sql = "SELECT * FROM house ORDER BY likes DESC"
 
     dbConnection.query(sql, (err, result) => {
         if (err) {
@@ -24,7 +24,7 @@ const show = (req, res, next) => {
     SELECT review.*
     FROM review
     JOIN house
-    ON house.id = review.id_casa
+    ON house.id = review.id_house
     WHERE house.id = ?`;
 
     // PRIMA QUERY: Controllo se l'immobile esiste
