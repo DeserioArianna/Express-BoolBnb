@@ -122,23 +122,47 @@ const postAppartemento = [
 
 const addLike = (req, res, next) => {
     const { id } = req.params;
+    const { email } = req.body;
+
+    const sqlEmail = `
+    SELECT email
+    FROM ${process.env.DB_DATABASE}.house 
+    WHERE id = ?`
 
     const sql = `
     UPDATE ${process.env.DB_DATABASE}.house
     SET likes = likes + 1
     where id = ?;`
 
-    dbConnection.query(sql, [id], (err, results) => {
+    dbConnection.query(sqlEmail, [id], (err, results) => {
         if (err) {
-            return next(new Error("errore interno del server"))
+            return next(new Error("Errore interno del server"))
         }
         if (results.length === 0) {
             return res.status(404).json({ message: "Immobile non trovato" });
         }
-        return res.status(200).json({
-            status: "success",
-            data: results[0]
+
+        const onwerEmail = results[0].onwerEmail;
+
+        if (email === onwerEmail) {
+            return res.status(403).json({
+                message: "Non puoi mettere like alla tua casa"
+            })
+        }
+
+        // Se l'utente non è il proprietario, incrementa i like
+
+        dbConnection.query(sql, [id], (err, results) => {
+            if (err) {
+                return next(new Error("Errore interno del server"));
+            }
+
+            return res.status(200).json({
+                status: "success",
+                message: "Like aggiunto con successo"
+            })
         })
+        
     });
 }
 
