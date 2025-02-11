@@ -227,6 +227,27 @@ const postReview = [
     }
 ];
 
+const searchByCity = (req, res, next) => {
+    const { city } = req.params;
+    
+
+    const sql = "SELECT * FROM house WHERE city = ? ORDER BY likes DESC"
+    
+    dbConnection.query(sql, [city], (err, results) => {
+        if (err) {
+            return next(new Error("Error interno del server"))
+        }
+        if (results.length === 0) {
+            return res.status(404).json({ message:"Nessun appartamento trovato"})
+        }
+
+        return res.status(200).json({
+            status:"success",
+            data: results
+        })
+    })
+}
+
 module.exports = {
     index,
     show,
@@ -234,5 +255,6 @@ module.exports = {
     addLike,
     postAppartemento,
     postReview,
-    indexProperty
+    indexProperty,
+    searchByCity
 }
