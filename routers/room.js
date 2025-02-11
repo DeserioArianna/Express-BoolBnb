@@ -9,11 +9,11 @@ router.get("/", roomController.index);
 //INDEX della tipologia di casa
 router.get("/property", roomController.indexProperty)
 
-//SHOW
-router.get("/:id", roomController.show);
-
 //RICERCA PER CITTÀ
 router.get("/search", roomController.searchByCity)
+
+//SHOW
+router.get("/:id", roomController.show);
 
 //POST
 router.post("/", roomController.postAppartemento);

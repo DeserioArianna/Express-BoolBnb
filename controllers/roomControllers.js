@@ -16,6 +16,60 @@ const index = (req, res, next) => {
     });
 };
 
+const searchByCity = (req, res, next) => {
+    let { city, bedrooms, bathrooms, id_property } = req.query;
+
+    let filters = [];
+    let values = [];
+
+    if (city) {
+        filters.push("city LIKE ?");
+        values.push(`%${city}%`);
+    }
+
+    if (bedrooms) {
+        filters.push("bedrooms >= ?");
+        values.push(parseInt(bedrooms));
+    }
+
+    if (bathrooms) {
+        filters.push("bathrooms <= ?");
+        values.push(parseInt(bathrooms));
+    }
+
+    if (id_property) {
+        filters.push("id_property = ?");
+        values.push(parseInt(id_property));
+    }
+
+    let sql = "SELECT * FROM house";
+
+    if (filters.length > 0) {
+        sql += " WHERE " + filters.join(" AND ");
+    }
+
+    
+    sql += " ORDER BY likes DESC"; 
+
+    console.log("SQL Query:", sql, "Values:", values);
+
+    dbConnection.query(sql, values, (err, results) => {
+        if (err) {
+            return next(new Error("Errore interno del server"));
+        }
+        if (results.length === 0) {
+            return res.status(404).json({ message: "Nessun appartamento trovato" });
+        }
+
+        return res.status(200).json({
+            status: "success",
+            data: results
+        });
+    });
+};
+
+
+
 const indexProperty = (req, res, next) => {
     const sql= "SELECT * FROM property"
     dbConnection.query(sql, (err, result) => {
@@ -227,63 +281,7 @@ const postReview = [
     }
 ];
 
-const searchByCity = (req, res, next) => {
-    const { city, bedrooms, bathrooms, id_property } = req.params;
-    
 
-    // city, bedrooms, bathrooms, id_prperty
-
-     const filters = []
-     const values = []
-
-    if (city) {
-        filters.push("city LIKE ?")
-        values.push(`%${city}%`)
-    }
-
-    if (bedrooms) {
-        filters.push("bedrooms >= ?")
-        values.push(parseInt(bedrooms))
-    }
-
-    if (bathrooms) {
-        filters.push("bathrooms >= ?")
-        values.push(parseInt(bathrooms))
-    }
-
-    if (id_property) {
-        filters.push("id_property = ?")
-        values.push(parseInt(id_property))
-    }
-
-    
-     
-     const sql = "SELECT * FROM house"
-
-    if (filters.length>0){
-       sql += `WHERE ${filters.join(" AND ")} ORDER BY likes DESC`
-       
-    }
-    
-
-    console.log(sql, filters);
-    
-     
-    
-    dbConnection.query(sql, values, (err, results) => {
-        if (err) {
-            return next(new Error("Error interno del server"))
-        }
-        if (results.length === 0) {
-            return res.status(404).json({ message:"Nessun appartamento trovato"})
-        }
-
-        return res.status(200).json({
-            status:"success",
-            data: results
-        })
-    })
-}
 
 module.exports = {
     index,
