@@ -32,7 +32,7 @@ const indexProperty = (req, res, next) => {
 const show = (req, res, next) => {
     const { id } = req.params;
 
-    const sql = `SELECT * FROM house WHERE id = ?;`
+    const sql = `SELECT * FROM house WHERE id = ?`
     const sqlReviews = `
     SELECT review.*
     FROM review
@@ -98,7 +98,7 @@ const postAppartemento = [
 
         const sql = `
         INSERT INTO house (id_property, title, city, descr, rooms, url_img, bedrooms, bathrooms, square_meters, address, email, likes)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
 
         dbConnection.query(sql, [
@@ -126,7 +126,7 @@ const addLike = (req, res, next) => {
     const sql = `
     UPDATE ${process.env.DB_DATABASE}.house
     SET likes = likes + 1
-    where id = ?;`
+    where id = ?`
 
     dbConnection.query(sql, [id], (err, results) => {
         if (err) {
@@ -205,6 +205,8 @@ const postReview = [
 
 const searchByCity = (req, res, next) => {
     const { city } = req.params;
+    console.log(req.params);
+    
     
 
     const sql = "SELECT * FROM house WHERE city = ? ORDER BY likes DESC"
