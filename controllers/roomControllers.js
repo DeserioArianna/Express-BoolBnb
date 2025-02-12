@@ -196,7 +196,10 @@ const addLike = (req, res, next) => {
             return res.status(404).json({ message: "Immobile non trovato" });
         }
 
-        const onwerEmail = results[0].onwerEmail;
+        const onwerEmail = results[0].email;
+
+        console.log("Email ricevuta:", email)
+        console.log("Email proprietario:", onwerEmail)
 
         if (email === onwerEmail) {
             return res.status(403).json({
