@@ -1,5 +1,5 @@
 const dbConnection = require("../dbConnection/dbConnection")
-const { body, validationResult } = require("express-validator")
+const { body, validationResult, query } = require("express-validator")
 const { validateInputs, errorHandler } = require("../middleware/errorsHandlers");
 
 const index = (req, res, next) => {
@@ -16,9 +16,21 @@ const index = (req, res, next) => {
     });
 };
 
-const searchByCity = (req, res, next) => {
-    let { city, bedrooms, bathrooms, id_property } = req.query;
+const searchByCityValidation = [
+    query("city").optional().isString().withMessage("La città deve essere una stringa"),
+    query("bedrooms").optional().isInt({ min: 0 }).withMessage("Il numero di camere da letto deve essere un numero intero positivo"),
+    query("bathrooms").optional().isInt({ min: 0 }).withMessage("Il numero di bagni deve essere un numero intero positivo"),
+    query("id_property").optional().isInt({ min: 1 , max: 4 }).withMessage("L'ID della proprietà deve essere un numero intero positivo"),
+];
 
+const searchByCity = (req, res, next) => {
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
+
+    let { city, bedrooms, bathrooms, id_property } = req.query;
     let filters = [];
     let values = [];
 
@@ -29,17 +41,17 @@ const searchByCity = (req, res, next) => {
 
     if (bedrooms) {
         filters.push("bedrooms >= ?");
-        values.push(parseInt(bedrooms));
+        values.push(parseInt(bedrooms, 10));
     }
 
     if (bathrooms) {
         filters.push("bathrooms <= ?");
-        values.push(parseInt(bathrooms));
+        values.push(parseInt(bathrooms, 10));
     }
 
     if (id_property) {
         filters.push("id_property = ?");
-        values.push(parseInt(id_property));
+        values.push(parseInt(id_property, 10));
     }
 
     let sql = "SELECT * FROM house";
@@ -48,14 +60,14 @@ const searchByCity = (req, res, next) => {
         sql += " WHERE " + filters.join(" AND ");
     }
 
-    
-    sql += " ORDER BY likes DESC"; 
+    sql += " ORDER BY likes DESC";
 
-    console.log("SQL Query:", sql, "Values:", values);
+    console.log("SQL Query:", sql, "Values:", values); // Debug
 
     dbConnection.query(sql, values, (err, results) => {
         if (err) {
-            return next(new Error("Errore interno del server"));
+            console.error("Errore SQL:", err.sqlMessage, err.code);
+            return res.status(500).json({ error: "Errore del server", details: err.sqlMessage });
         }
         if (results.length === 0) {
             return res.status(404).json({ message: "Nessun appartamento trovato" });
@@ -291,5 +303,6 @@ module.exports = {
     postAppartemento,
     postReview,
     indexProperty,
-    searchByCity
+    searchByCity,
+    searchByCityValidation
 }
