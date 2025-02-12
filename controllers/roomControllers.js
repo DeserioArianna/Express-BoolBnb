@@ -20,7 +20,7 @@ const searchByCityValidation = [
     query("city").optional().isString().withMessage("La città deve essere una stringa"),
     query("bedrooms").optional().isInt({ min: 0 }).withMessage("Il numero di camere da letto deve essere un numero intero positivo"),
     query("bathrooms").optional().isInt({ min: 0 }).withMessage("Il numero di bagni deve essere un numero intero positivo"),
-    query("id_property").optional().isInt({ min: 1 , max: 4 }).withMessage("L'ID della proprietà deve essere un numero intero positivo"),
+    query("id_property").optional().isInt({ min: 1, max: 4 }).withMessage("L'ID della proprietà deve essere un numero intero positivo"),
 ];
 
 const searchByCity = (req, res, next) => {
@@ -40,7 +40,7 @@ const searchByCity = (req, res, next) => {
     }
 
     if (bedrooms) {
-        filters.push("bedrooms >= ?");
+        filters.push("bedrooms <= ?");
         values.push(parseInt(bedrooms, 10));
     }
 
@@ -83,9 +83,9 @@ const searchByCity = (req, res, next) => {
 
 
 const indexProperty = (req, res, next) => {
-    const sql= "SELECT * FROM property"
+    const sql = "SELECT * FROM property"
     dbConnection.query(sql, (err, result) => {
-        if(err) {
+        if (err) {
             return next(new Error("errore interno del server"))
         }
         return res.status(200).json({
@@ -147,7 +147,7 @@ const postAppartemento = [
     body("bathrooms").isInt({ min: 1 }).withMessage("I bagni devono essere almeno 1"),
     body("square_meters").isInt({ min: 10 }).withMessage("I metri quadri devono essere almeno 10"),
     body("address").isString().isLength({ min: 5, max: 255 }).withMessage("L'indirizzo deve avere tra 5 e 255 caratteri"),
-    body("email").isEmail().withMessage("L'email non è valida"),
+    
 
     validateInputs,
 
@@ -168,7 +168,7 @@ const postAppartemento = [
         `;
 
         dbConnection.query(sql, [
-            a.id_property, a.title, a.city, a.descr, a.rooms, a.url_img, 
+            a.id_property, a.title, a.city, a.descr, a.rooms, a.url_img,
             a.bedrooms, a.bathrooms, a.square_meters, a.address, a.email, likes = 0
 
         ], (err, results) => {
@@ -228,7 +228,7 @@ const addLike = (req, res, next) => {
                 message: "Like aggiunto con successo"
             })
         })
-        
+
     });
 }
 
@@ -250,7 +250,7 @@ const postReview = [
         }
 
         const houseId = (req.params.id);
-        const { reviewContent, username, lengthOfDay } = req.body;
+        const { reviewContent, username, lengthOfDay, user_email } = req.body;
 
         //Verifica se l'ID della casa è un numero valido
         if (isNaN(houseId) || houseId <= 0) {
@@ -276,9 +276,13 @@ const postReview = [
                 });
             }
 
-            //Se l'immobile esiste, inseriamo la recensione
-            const sql = `INSERT INTO review (id_house, review_content, username, length_of_stay) VALUES (?, ?, ?, ?)`;
-            dbConnection.query(sql, [houseId, reviewContent, username, lengthOfDay], (err, result) => {
+            // Otteniamo la data attuale in formato YYYY-MM-DD
+            const currentDate = new Date().toISOString().split('T')[0];
+
+            //Se l'immobile esiste, inseriamo la recensione con la data
+            const sql = `INSERT INTO review (id_house, review_content, username, length_of_stay, user_email, date) 
+                        VALUES (?, ?, ?, ?, ?, ?)`;
+            dbConnection.query(sql, [houseId, reviewContent, username, lengthOfDay, user_email, currentDate], (err, result) => {
                 if (err) {
                     console.error("Errore SQL durante l'inserimento della recensione:", err.message);
                     return next(new Error("Errore nell'inserimento della recensione"));
