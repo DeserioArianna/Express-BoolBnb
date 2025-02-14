@@ -96,35 +96,35 @@ const indexProperty = (req, res, next) => {
 }
 
 const show = (req, res, next) => {
-    const { id } = req.params;
+    const  slug  = req.params;
 
-    const sql = `SELECT * FROM house WHERE id = ?`
-    const sqlReviews = `
-    SELECT review.*
-    FROM review
-    JOIN house
-    ON house.id = review.id_house
-    WHERE house.id = ?`;
+    const sql = `SELECT * FROM house WHERE slug = ?`;
 
-    // PRIMA QUERY: Controllo se l'immobile esiste
-    dbConnection.query(sql, [id], (err, results) => {
+    dbConnection.query(sql, [slug], (err, results) => {
         if (err) {
-            return next(new Error("Errore interno del server"));
-        }
-        if (results.length === 0) {
-            return res.status(404).json({ message: "Immobile non trovato riga 49" });
+            console.error("Errore nella query SQL (house):", err);
+            return res.status(500).json({ error: "Errore interno del server" });
         }
 
-        // SECONDA QUERY: Recupero le recensioni SOLO se l'immobile esiste
-        dbConnection.query(sqlReviews, [id], (err, reviews) => {
+        if (results.length === 0) {
+            return res.status(404).json({ message: "Immobile non trovato" });
+        }
+
+        const house = results[0];
+        const houseId = house.id;
+
+        const sqlReviews = `SELECT * FROM review WHERE id_house = ?`;
+
+        dbConnection.query(sqlReviews, [houseId], (err, reviews) => {
             if (err) {
-                return next(new Error("Errore interno del server"));
+                console.error("Errore nella query SQL (reviews):", err);
+                return res.status(500).json({ error: "Errore interno del server" });
             }
 
             return res.status(200).json({
                 status: "success",
                 data: {
-                    ...results[0],
+                    ...house,
                     reviews
                 }
             });
@@ -147,7 +147,7 @@ const postAppartemento = [
     body("bathrooms").isInt({ min: 1 }).withMessage("I bagni devono essere almeno 1"),
     body("square_meters").isInt({ min: 10 }).withMessage("I metri quadri devono essere almeno 10"),
     body("address").isString().isLength({ min: 5, max: 255 }).withMessage("L'indirizzo deve avere tra 5 e 255 caratteri"),
-    
+
 
     validateInputs,
 
