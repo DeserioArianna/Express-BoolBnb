@@ -147,6 +147,7 @@ const postAppartemento = [
     body("bathrooms").isInt({ min: 1 }).withMessage("I bagni devono essere almeno 1"),
     body("square_meters").isInt({ min: 10 }).withMessage("I metri quadri devono essere almeno 10"),
     body("address").isString().isLength({ min: 5, max: 255 }).withMessage("L'indirizzo deve avere tra 5 e 255 caratteri"),
+    body("email").isEmail().withMessage("Inserisci un'email valida"),
     
 
     validateInputs,
