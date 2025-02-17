@@ -96,7 +96,7 @@ const indexProperty = (req, res, next) => {
 }
 
 const show = (req, res, next) => {
-    const  slug  = req.params;
+    const slug = req.params.slug;
 
     const sql = `SELECT * FROM house WHERE slug = ?`;
 
@@ -149,16 +149,16 @@ const postAppartemento = [
     body("address").isString().isLength({ min: 5, max: 255 }).withMessage("L'indirizzo deve avere tra 5 e 255 caratteri"),
 
     body("email").isEmail().withMessage("L'email non è valida"),
-    
+
     //Controllo email 
     body("email")
-    .isEmail().withMessage("Email non valida")
-    .custom((value) => {
-        if (!value.endsWith(".com") && !value.endsWith(".it")) {
-            throw new Error("Email non valida");
-        }
-        return true;
-    }),
+        .isEmail().withMessage("Email non valida")
+        .custom((value) => {
+            if (!value.endsWith(".com") && !value.endsWith(".it")) {
+                throw new Error("Email non valida");
+            }
+            return true;
+        }),
 
     validateInputs,
 
@@ -175,13 +175,13 @@ const postAppartemento = [
             return str
                 .toLowerCase()
                 .trim()
-                .replace(/\s+/g, '-')      
+                .replace(/\s+/g, '-')
         };
 
         let baseSlug = slugify(a.title);
 
         const checkSlugSQL = `SELECT COUNT(*) AS count FROM house WHERE slug LIKE ?`;
-        
+
         dbConnection.query(checkSlugSQL, [`${baseSlug}%`], (err, results) => {
             if (err) {
                 console.error("Errore SQL nel controllo slug:", err.message);
@@ -211,7 +211,7 @@ const postAppartemento = [
                 return res.status(201).json({
                     status: "success",
                     insertedId: results.insertId,
-                    slug: a.slug 
+                    slug: a.slug
                 });
             });
         });
