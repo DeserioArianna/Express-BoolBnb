@@ -1,5 +1,6 @@
 const express = require("express");
-const roomController = require("../controllers/roomControllers")
+const roomController = require("../controllers/roomControllers");
+const upload = require("../middleware/fileUpload")
 
 const router = express.Router();
 
@@ -16,7 +17,7 @@ router.get("/search", roomController.searchByCity)
 router.get("/:slug", roomController.show);
 
 //POST
-router.post("/", roomController.postAppartemento);
+router.post("/", upload.single("file"), roomController.postAppartemento);
 
 //POST di una recensione
 router.post("/:id/review", roomController.postReview)
