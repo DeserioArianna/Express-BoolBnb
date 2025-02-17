@@ -148,6 +148,20 @@ const postAppartemento = [
     body("square_meters").isInt({ min: 10 }).withMessage("I metri quadri devono essere almeno 10"),
     body("address").isString().isLength({ min: 5, max: 255 }).withMessage("L'indirizzo deve avere tra 5 e 255 caratteri"),
 
+    body("email").isEmail().withMessage("L'email non è valida"),
+    
+    //Controllo email 
+    body("email")
+    .isEmail().withMessage("Email non valida")
+    .custom((value) => {
+        if (!value.endsWith(".com") && !value.endsWith(".it")) {
+            throw new Error("Email non valida");
+        }
+        return true;
+    }),
+
+
+
     validateInputs,
 
     (req, res, next) => {
