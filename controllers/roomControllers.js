@@ -148,7 +148,6 @@ const postAppartemento = [
     body("square_meters").isInt({ min: 10 }).withMessage("I metri quadri devono essere almeno 10"),
     body("address").isString().isLength({ min: 5, max: 255 }).withMessage("L'indirizzo deve avere tra 5 e 255 caratteri"),
 
-
     validateInputs,
 
     (req, res, next) => {
@@ -156,34 +155,57 @@ const postAppartemento = [
 
         const maiusc = (str) => {
             return str.charAt(0).toUpperCase() + str.slice(1);
-        }
+        };
         a.city = maiusc(a.city);
 
 
-        console.log("Dati ricevuti e validati:", a);
+        const slugify = (str) => {
+            return str
+                .toLowerCase()
+                .trim()
+                .replace(/\s+/g, '-')      
+        };
 
-        const sql = `
-        INSERT INTO house (id_property, title, city, descr, rooms, url_img, bedrooms, bathrooms, square_meters, address, email, likes)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `;
+        let baseSlug = slugify(a.title);
 
-        dbConnection.query(sql, [
-            a.id_property, a.title, a.city, a.descr, a.rooms, a.url_img,
-            a.bedrooms, a.bathrooms, a.square_meters, a.address, a.email, likes = 0
-
-        ], (err, results) => {
+        const checkSlugSQL = `SELECT COUNT(*) AS count FROM house WHERE slug LIKE ?`;
+        
+        dbConnection.query(checkSlugSQL, [`${baseSlug}%`], (err, results) => {
             if (err) {
-                console.error("Errore SQL:", err.message);
-                return next(err); // Passiamo l'errore al middleware `errorHandler`
+                console.error("Errore SQL nel controllo slug:", err.message);
+                return next(err);
             }
 
-            return res.status(201).json({
-                status: "success",
-                insertedId: results.insertId
+            const count = results[0].count;
+
+            a.slug = count > 0 ? `${baseSlug}-${a.id_property}` : baseSlug;
+
+            console.log("Slug generato:", a.slug);
+
+            const sql = `
+            INSERT INTO house (id_property, title, slug, city, descr, rooms, url_img, bedrooms, bathrooms, square_meters, address, email, likes)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            `;
+
+            dbConnection.query(sql, [
+                a.id_property, a.title, a.slug, a.city, a.descr, a.rooms, a.url_img,
+                a.bedrooms, a.bathrooms, a.square_meters, a.address, a.email, 0
+            ], (err, results) => {
+                if (err) {
+                    console.error("Errore SQL nell'inserimento:", err.message);
+                    return next(err);
+                }
+
+                return res.status(201).json({
+                    status: "success",
+                    insertedId: results.insertId,
+                    slug: a.slug 
+                });
             });
         });
     }
 ];
+
 
 
 const addLike = (req, res, next) => {
