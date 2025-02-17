@@ -160,8 +160,6 @@ const postAppartemento = [
         return true;
     }),
 
-
-
     validateInputs,
 
     (req, res, next) => {
@@ -192,7 +190,7 @@ const postAppartemento = [
 
             const count = results[0].count;
 
-            a.slug = count > 0 ? `${baseSlug}-${a.id_property}` : baseSlug;
+            a.slug = count > 0 ? `${baseSlug}-${a.id}` : baseSlug;
 
             console.log("Slug generato:", a.slug);
 
