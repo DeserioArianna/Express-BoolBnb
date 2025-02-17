@@ -20,7 +20,7 @@ const searchByCityValidation = [
     query("city").optional().isString().withMessage("La città deve essere una stringa"),
     query("bedrooms").optional().isInt({ min: 0 }).withMessage("Il numero di camere da letto deve essere un numero intero positivo"),
     query("bathrooms").optional().isInt({ min: 0 }).withMessage("Il numero di bagni deve essere un numero intero positivo"),
-    query("id_property").optional().isInt({ min: 1 , max: 4 }).withMessage("L'ID della proprietà deve essere un numero intero positivo"),
+    query("id_property").optional().isInt({ min: 1, max: 4 }).withMessage("L'ID della proprietà deve essere un numero intero positivo"),
 ];
 
 const searchByCity = (req, res, next) => {
@@ -40,7 +40,7 @@ const searchByCity = (req, res, next) => {
     }
 
     if (bedrooms) {
-        filters.push("bedrooms >= ?");
+        filters.push("bedrooms <= ?");
         values.push(parseInt(bedrooms, 10));
     }
 
@@ -83,9 +83,9 @@ const searchByCity = (req, res, next) => {
 
 
 const indexProperty = (req, res, next) => {
-    const sql= "SELECT * FROM property"
+    const sql = "SELECT * FROM property"
     dbConnection.query(sql, (err, result) => {
-        if(err) {
+        if (err) {
             return next(new Error("errore interno del server"))
         }
         return res.status(200).json({
@@ -96,35 +96,35 @@ const indexProperty = (req, res, next) => {
 }
 
 const show = (req, res, next) => {
-    const { id } = req.params;
+    const  slug  = req.params;
 
-    const sql = `SELECT * FROM house WHERE id = ?`
-    const sqlReviews = `
-    SELECT review.*
-    FROM review
-    JOIN house
-    ON house.id = review.id_house
-    WHERE house.id = ?`;
+    const sql = `SELECT * FROM house WHERE slug = ?`;
 
-    // PRIMA QUERY: Controllo se l'immobile esiste
-    dbConnection.query(sql, [id], (err, results) => {
+    dbConnection.query(sql, [slug], (err, results) => {
         if (err) {
-            return next(new Error("Errore interno del server"));
-        }
-        if (results.length === 0) {
-            return res.status(404).json({ message: "Immobile non trovato riga 49" });
+            console.error("Errore nella query SQL (house):", err);
+            return res.status(500).json({ error: "Errore interno del server" });
         }
 
-        // SECONDA QUERY: Recupero le recensioni SOLO se l'immobile esiste
-        dbConnection.query(sqlReviews, [id], (err, reviews) => {
+        if (results.length === 0) {
+            return res.status(404).json({ message: "Immobile non trovato" });
+        }
+
+        const house = results[0];
+        const houseId = house.id;
+
+        const sqlReviews = `SELECT * FROM review WHERE id_house = ?`;
+
+        dbConnection.query(sqlReviews, [houseId], (err, reviews) => {
             if (err) {
-                return next(new Error("Errore interno del server"));
+                console.error("Errore nella query SQL (reviews):", err);
+                return res.status(500).json({ error: "Errore interno del server" });
             }
 
             return res.status(200).json({
                 status: "success",
                 data: {
-                    ...results[0],
+                    ...house,
                     reviews
                 }
             });
@@ -147,6 +147,7 @@ const postAppartemento = [
     body("bathrooms").isInt({ min: 1 }).withMessage("I bagni devono essere almeno 1"),
     body("square_meters").isInt({ min: 10 }).withMessage("I metri quadri devono essere almeno 10"),
     body("address").isString().isLength({ min: 5, max: 255 }).withMessage("L'indirizzo deve avere tra 5 e 255 caratteri"),
+
     body("email").isEmail().withMessage("L'email non è valida"),
     
     //Controllo email 
@@ -159,6 +160,8 @@ const postAppartemento = [
         return true;
     }),
 
+
+
     validateInputs,
 
     (req, res, next) => {
@@ -166,34 +169,57 @@ const postAppartemento = [
 
         const maiusc = (str) => {
             return str.charAt(0).toUpperCase() + str.slice(1);
-        }
+        };
         a.city = maiusc(a.city);
 
 
-        console.log("Dati ricevuti e validati:", a);
+        const slugify = (str) => {
+            return str
+                .toLowerCase()
+                .trim()
+                .replace(/\s+/g, '-')      
+        };
 
-        const sql = `
-        INSERT INTO house (id_property, title, city, descr, rooms, url_img, bedrooms, bathrooms, square_meters, address, email, likes)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `;
+        let baseSlug = slugify(a.title);
 
-        dbConnection.query(sql, [
-            a.id_property, a.title, a.city, a.descr, a.rooms, a.url_img, 
-            a.bedrooms, a.bathrooms, a.square_meters, a.address, a.email, likes = 0
-
-        ], (err, results) => {
+        const checkSlugSQL = `SELECT COUNT(*) AS count FROM house WHERE slug LIKE ?`;
+        
+        dbConnection.query(checkSlugSQL, [`${baseSlug}%`], (err, results) => {
             if (err) {
-                console.error("Errore SQL:", err.message);
-                return next(err); // Passiamo l'errore al middleware `errorHandler`
+                console.error("Errore SQL nel controllo slug:", err.message);
+                return next(err);
             }
 
-            return res.status(201).json({
-                status: "success",
-                insertedId: results.insertId
+            const count = results[0].count;
+
+            a.slug = count > 0 ? `${baseSlug}-${a.id_property}` : baseSlug;
+
+            console.log("Slug generato:", a.slug);
+
+            const sql = `
+            INSERT INTO house (id_property, title, slug, city, descr, rooms, url_img, bedrooms, bathrooms, square_meters, address, email, likes)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            `;
+
+            dbConnection.query(sql, [
+                a.id_property, a.title, a.slug, a.city, a.descr, a.rooms, a.url_img,
+                a.bedrooms, a.bathrooms, a.square_meters, a.address, a.email, 0
+            ], (err, results) => {
+                if (err) {
+                    console.error("Errore SQL nell'inserimento:", err.message);
+                    return next(err);
+                }
+
+                return res.status(201).json({
+                    status: "success",
+                    insertedId: results.insertId,
+                    slug: a.slug 
+                });
             });
         });
     }
 ];
+
 
 
 const addLike = (req, res, next) => {
@@ -218,7 +244,10 @@ const addLike = (req, res, next) => {
             return res.status(404).json({ message: "Immobile non trovato" });
         }
 
-        const onwerEmail = results[0].onwerEmail;
+        const onwerEmail = results[0].email;
+
+        console.log("Email ricevuta:", email)
+        console.log("Email proprietario:", onwerEmail)
 
         if (email === onwerEmail) {
             return res.status(403).json({
@@ -238,7 +267,7 @@ const addLike = (req, res, next) => {
                 message: "Like aggiunto con successo"
             })
         })
-        
+
     });
 }
 
@@ -260,7 +289,7 @@ const postReview = [
         }
 
         const houseId = (req.params.id);
-        const { reviewContent, username, lengthOfDay } = req.body;
+        const { reviewContent, username, lengthOfDay, user_email } = req.body;
 
         //Verifica se l'ID della casa è un numero valido
         if (isNaN(houseId) || houseId <= 0) {
@@ -286,9 +315,13 @@ const postReview = [
                 });
             }
 
-            //Se l'immobile esiste, inseriamo la recensione
-            const sql = `INSERT INTO review (id_house, review_content, username, length_of_stay) VALUES (?, ?, ?, ?)`;
-            dbConnection.query(sql, [houseId, reviewContent, username, lengthOfDay], (err, result) => {
+            // Otteniamo la data attuale in formato YYYY-MM-DD
+            const currentDate = new Date().toISOString().split('T')[0];
+
+            //Se l'immobile esiste, inseriamo la recensione con la data
+            const sql = `INSERT INTO review (id_house, review_content, username, length_of_stay, user_email, date) 
+                        VALUES (?, ?, ?, ?, ?, ?)`;
+            dbConnection.query(sql, [houseId, reviewContent, username, lengthOfDay, user_email, currentDate], (err, result) => {
                 if (err) {
                     console.error("Errore SQL durante l'inserimento della recensione:", err.message);
                     return next(new Error("Errore nell'inserimento della recensione"));
