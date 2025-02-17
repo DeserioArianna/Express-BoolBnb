@@ -17,7 +17,7 @@ router.get("/search", roomController.searchByCity)
 router.get("/:slug", roomController.show);
 
 //POST
-router.post("/", upload.single("file"), roomController.postAppartemento);
+router.post("/", upload.single("imageUpload"), roomController.postAppartemento);
 
 //POST di una recensione
 router.post("/:id/review", roomController.postReview)

@@ -211,7 +211,8 @@ const postAppartemento = [
                 return res.status(201).json({
                     status: "success",
                     insertedId: results.insertId,
-                    slug: a.slug
+                    slug: a.slug,
+                    imageUpload: a.url_img
                 });
             });
         });
