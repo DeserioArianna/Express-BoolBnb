@@ -192,8 +192,6 @@ const postAppartemento = [
 
             a.slug = count > 0 ? `${baseSlug}-${a.id}` : baseSlug;
 
-            console.log("Slug generato:", a.slug);
-
             const sql = `
             INSERT INTO house (id_property, title, slug, city, descr, rooms, url_img, bedrooms, bathrooms, square_meters, address, email, likes)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
