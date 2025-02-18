@@ -41,12 +41,12 @@ const searchByCity = (req, res, next) => {
     }
 
     if (bedrooms) {
-        filters.push("bedrooms <= ?");
+        filters.push("bedrooms >= ?");
         values.push(parseInt(bedrooms, 10));
     }
 
     if (bathrooms) {
-        filters.push("bathrooms <= ?");
+        filters.push("bathrooms >= ?");
         values.push(parseInt(bathrooms, 10));
     }
 
