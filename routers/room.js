@@ -20,7 +20,7 @@ router.get("/:slug", roomController.show);
 router.post("/", uploadMiddleware, roomController.postAppartemento);
 
 // POST di una recensione
-router.post("/:id/review", roomController.postReview);
+router.post("/:slug/review", roomController.postReview);
 
 // MODIFY
 router.patch("/:id", roomController.addLike);
