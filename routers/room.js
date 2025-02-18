@@ -1,29 +1,28 @@
 const express = require("express");
 const roomController = require("../controllers/roomControllers");
-const upload = require("../middleware/fileUpload")
+const uploadMiddleware = require("../middleware/fileUpload");
 
 const router = express.Router();
 
-//INDEX
+// INDEX
 router.get("/", roomController.index);
 
-//INDEX della tipologia di casa
-router.get("/property", roomController.indexProperty)
+// INDEX della tipologia di casa
+router.get("/property", roomController.indexProperty);
 
-//RICERCA PER CITTÀ
-router.get("/search", roomController.searchByCity)
+// RICERCA PER CITTÀ
+router.get("/search", roomController.searchByCity);
 
-//SHOW
+// SHOW
 router.get("/:slug", roomController.show);
 
-//POST
-router.post("/", upload.single("file"), roomController.postAppartemento);
+// POST
+router.post("/", uploadMiddleware, roomController.postAppartemento);
 
-//POST di una recensione
-router.post("/:id/review", roomController.postReview)
+// POST di una recensione
+router.post("/:id/review", roomController.postReview);
 
-//MODIFY
+// MODIFY
 router.patch("/:id", roomController.addLike);
-
 
 module.exports = router;
