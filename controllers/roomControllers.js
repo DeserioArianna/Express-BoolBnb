@@ -161,14 +161,14 @@ const postAppartemento = [
             return true;
         }),
 
-      //Controllo che il numero di letti sia maggiore uguale al numero di stanze 
-      body("bedrooms").custom((value, { req }) => {
+    //Controllo che il numero di letti sia maggiore uguale al numero di stanze 
+    body("bedrooms").custom((value, { req }) => {
         if (value < req.body.rooms) {
             throw new Error("Il numero di letti deve essere maggiore o uguale al numero delle camere da letto");
         }
         return true;
-      }),
-  
+    }),
+
 
     validateInputs,
 
@@ -279,14 +279,14 @@ const addLike = (req, res, next) => {
 }
 
 const postReview = [
-    
+
     body("reviewContent").isString().trim().isLength({ min: 5, max: 500 }).withMessage("La recensione deve avere tra 5 e 500 caratteri"),
     body("username").isString().trim().isLength({ min: 3, max: 50 }).withMessage("Il nome utente deve avere tra 3 e 50 caratteri"),
     body("lengthOfDay").isInt({ min: 1 }).withMessage("Il numero di giorni deve essere almeno 1"),
     body("user_email").isEmail().withMessage("L'email non è valida"),
 
     (req, res, next) => {
-        
+
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             return res.status(400).json({
@@ -296,10 +296,10 @@ const postReview = [
             });
         }
 
-        const houseSlug = req.params.slug; 
+        const houseSlug = req.params.slug;
         const { reviewContent, username, lengthOfDay, user_email } = req.body;
 
-        
+
         const findHouseSQL = `SELECT id FROM house WHERE slug = ?`;
         dbConnection.query(findHouseSQL, [houseSlug], (err, result) => {
             if (err) {
@@ -340,67 +340,67 @@ const postReview = [
 ];
 
 const sendEmail = (req, res, next) => {
-    const { name, sender, subject, message } = req.body;
+    const { name, sender, message } = req.body;
     console.log("Email ricevuta:", req.body);
-
+    subject = `Informazini sull'immobile`;
     const slug = req.params.slug;
     const sql = `SELECT email FROM house WHERE slug = ?`;
 
     try {
         // Recupera email del proprietario da MySQL
         dbConnection.query(sql, [slug], (err, rows) => {
-                if (err) {
-                    console.error('Errore nella query:', err);
-                    return res.status(500).json({ error: 'Errore nel recupero dell\'email' });
-                }
+            if (err) {
+                console.error('Errore nella query:', err);
+                return res.status(500).json({ error: 'Errore nel recupero dell\'email' });
+            }
 
-                console.log('Risultato query:', rows);
+            console.log('Risultato query:', rows);
 
-                if (rows.length === 0) {
-                    return res.status(404).json({ error: 'Proprietario non trovato' });
-                }
+            if (rows.length === 0) {
+                return res.status(404).json({ error: 'Proprietario non trovato' });
+            }
 
-                const ownerEmail = rows[0].email;
+            const ownerEmail = rows[0].email;
 
-                // Configura il trasportatore per Mailtrap
-                const transporter = nodemailer.createTransport({
-                    host: process.env.MAILTRAP_HOST,
-                    port: process.env.MAILTRAP_PORT,
-                    auth: {
-                        user: process.env.MAILTRAP_USER,
-                        pass: process.env.MAILTRAP_PASSWORD,
-                    },
-                    
-                });
-                console.log('Credenziali Mailtrap:', {
-                    host: process.env.MAILTRAP_HOST,
-                    port: process.env.MAILTRAP_PORT,
+            // Configura il trasportatore per Mailtrap
+            const transporter = nodemailer.createTransport({
+                host: process.env.MAILTRAP_HOST,
+                port: process.env.MAILTRAP_PORT,
+                auth: {
                     user: process.env.MAILTRAP_USER,
                     pass: process.env.MAILTRAP_PASSWORD,
-                  });
+                },
 
-                // Definisci il mittente dinamico (nome + email)
-                const from = `"${name}" <${sender}>`;
+            });
+            console.log('Credenziali Mailtrap:', {
+                host: process.env.MAILTRAP_HOST,
+                port: process.env.MAILTRAP_PORT,
+                user: process.env.MAILTRAP_USER,
+                pass: process.env.MAILTRAP_PASSWORD,
+            });
 
-                // Definisci le opzioni dell'email
-                const mailOptions = {
-                    from,                    // Mittente dinamico
-                    to: ownerEmail,          // Email del proprietario
-                    subject,                 // Oggetto dell'email
-                    text: message,           // Messaggio
-                };
+            // Definisci il mittente dinamico (nome + email)
+            const from = `"${name}" <${sender}>`;
 
-                // Invia l'email
-                transporter.sendMail(mailOptions, (err, info) => {
-                    if (err) {
-                        console.error('Errore nell\'invio dell\'email:', err);
-                        return res.status(500).json({ error: 'Errore durante l’invio dell’email' });
-                    }
+            // Definisci le opzioni dell'email
+            const mailOptions = {
+                from,                    // Mittente dinamico
+                to: ownerEmail,          // Email del proprietario
+                subject,                 // Oggetto dell'email
+                text: message,           // Messaggio
+            };
 
-                    console.log('Email inviata con successo:', info);
-                    res.status(200).json({ message: 'Email inviata con successo' });
-                });
-            }
+            // Invia l'email
+            transporter.sendMail(mailOptions, (err, info) => {
+                if (err) {
+                    console.error('Errore nell\'invio dell\'email:', err);
+                    return res.status(500).json({ error: 'Errore durante l’invio dell’email' });
+                }
+
+                console.log('Email inviata con successo:', info);
+                res.status(200).json({ message: 'Email inviata con successo' });
+            });
+        }
         );
     } catch (error) {
         console.error('Errore:', error);
