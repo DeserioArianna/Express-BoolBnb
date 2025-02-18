@@ -160,13 +160,13 @@ const postAppartemento = [
             return true;
         }),
 
-    //Controllo che il numero di letti sia maggiore uguale al numero di stanze 
-    body("bedrooms").custom((value, { req }) => {
+     //Controllo che il numero di letti sia maggiore uguale al numero di stanze 
+      body("bedrooms").custom((value, { req }) => {
         if (value < req.body.rooms) {
             throw new Error("Il numero di letti deve essere maggiore o uguale al numero delle camere da letto");
         }
         return true;
-    }),
+       }),
   
 
     validateInputs,
