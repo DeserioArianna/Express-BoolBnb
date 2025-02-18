@@ -1,0 +1,12 @@
+UPDATE `boolbnb2_db`.`house` SET `rooms` = '2', `bedrooms` = '4' WHERE (`id` = '1');
+UPDATE `boolbnb2_db`.`house` SET `rooms` = '3', `bedrooms` = '4' WHERE (`id` = '2');
+UPDATE `boolbnb2_db`.`house` SET `rooms` = '4', `bedrooms` = '8' WHERE (`id` = '3');
+UPDATE `boolbnb2_db`.`house` SET `rooms` = '3', `bedrooms` = '4' WHERE (`id` = '4');
+UPDATE `boolbnb2_db`.`house` SET `rooms` = '2', `bedrooms` = '3' WHERE (`id` = '5');
+UPDATE `boolbnb2_db`.`house` SET `rooms` = '4', `bedrooms` = '8' WHERE (`id` = '6');
+UPDATE `boolbnb2_db`.`house` SET `rooms` = '5', `bedrooms` = '10' WHERE (`id` = '7');
+UPDATE `boolbnb2_db`.`house` SET `rooms` = '3', `bedrooms` = '4' WHERE (`id` = '8');
+UPDATE `boolbnb2_db`.`house` SET `rooms` = '2', `bedrooms` = '4' WHERE (`id` = '9');
+UPDATE `boolbnb2_db`.`house` SET `rooms` = '3', `bedrooms` = '5' WHERE (`id` = '10');
+UPDATE `boolbnb2_db`.`house` SET `rooms` = '4', `bedrooms` = '6' WHERE (`id` = '11');
+UPDATE `boolbnb2_db`.`house` SET `rooms` = '3', `bedrooms` = '6' WHERE (`id` = '12');
