@@ -161,6 +161,15 @@ const postAppartemento = [
             return true;
         }),
 
+    //Controllo che il numero di letti sia maggiore uguale al numero di stanze 
+    body("bedrooms").custom((value, { req }) => {
+        if (value < req.body.rooms) {
+            throw new Error("Il numero di letti deve essere maggiore o uguale al numero delle camere da letto");
+        }
+        return true;
+    }),
+  
+
     validateInputs,
 
     (req, res, next) => {
@@ -192,8 +201,6 @@ const postAppartemento = [
             const count = results[0].count;
 
             a.slug = count > 0 ? `${baseSlug}-${a.id}` : baseSlug;
-
-            console.log("Slug generato:", a.slug);
 
             const sql = `
             INSERT INTO house (id_property, title, slug, city, descr, rooms, url_img, bedrooms, bathrooms, square_meters, address, email, likes)
@@ -272,13 +279,14 @@ const addLike = (req, res, next) => {
 }
 
 const postReview = [
-    // Validazione degli input con express-validator
+    
     body("reviewContent").isString().trim().isLength({ min: 5, max: 500 }).withMessage("La recensione deve avere tra 5 e 500 caratteri"),
     body("username").isString().trim().isLength({ min: 3, max: 50 }).withMessage("Il nome utente deve avere tra 3 e 50 caratteri"),
     body("lengthOfDay").isInt({ min: 1 }).withMessage("Il numero di giorni deve essere almeno 1"),
+    body("user_email").isEmail().withMessage("L'email non è valida"),
 
     (req, res, next) => {
-        //Controlliamo se ci sono errori di validazione
+        
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             return res.status(400).json({
@@ -288,25 +296,16 @@ const postReview = [
             });
         }
 
-        const houseId = (req.params.id);
+        const houseSlug = req.params.slug; 
         const { reviewContent, username, lengthOfDay, user_email } = req.body;
 
-        //Verifica se l'ID della casa è un numero valido
-        if (isNaN(houseId) || houseId <= 0) {
-            return res.status(400).json({
-                status: "fail",
-                message: "ID della casa non valido"
-            });
-        }
-
-        //Controlliamo se l'immobile esiste
-        const houseSql = `SELECT * FROM house WHERE id = ?`;
-        dbConnection.query(houseSql, [houseId], (err, result) => {
+        
+        const findHouseSQL = `SELECT id FROM house WHERE slug = ?`;
+        dbConnection.query(findHouseSQL, [houseSlug], (err, result) => {
             if (err) {
-                console.error("Errore SQL nella ricerca dell'immobile:", err.message);
+                console.error("Errore SQL nella ricerca dell'immobile tramite slug:", err.message);
                 return next(new Error("Errore durante il controllo dell'immobile"));
             }
-
 
             if (result.length === 0) {
                 return res.status(404).json({
@@ -315,13 +314,15 @@ const postReview = [
                 });
             }
 
-            // Otteniamo la data attuale in formato YYYY-MM-DD
+            const houseId = result[0].id;
+
             const currentDate = new Date().toISOString().split('T')[0];
 
-            //Se l'immobile esiste, inseriamo la recensione con la data
-            const sql = `INSERT INTO review (id_house, review_content, username, length_of_stay, user_email, date) 
-                        VALUES (?, ?, ?, ?, ?, ?)`;
-            dbConnection.query(sql, [houseId, reviewContent, username, lengthOfDay, user_email, currentDate], (err, result) => {
+            const insertReviewSQL = `
+                INSERT INTO review (id_house, review_content, username, length_of_stay, user_email, date) 
+                VALUES (?, ?, ?, ?, ?, ?)`;
+
+            dbConnection.query(insertReviewSQL, [houseId, reviewContent, username, lengthOfDay, user_email, currentDate], (err, result) => {
                 if (err) {
                     console.error("Errore SQL durante l'inserimento della recensione:", err.message);
                     return next(new Error("Errore nell'inserimento della recensione"));
@@ -403,6 +404,7 @@ const sendEmail = (req, res, next) => {
         res.status(500).json({ error: 'Errore durante l’invio dell’email' });
     }
 };
+
 
 
 
