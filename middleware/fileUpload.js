@@ -35,7 +35,7 @@ const upload = multer({
             cb(new Error('Tipo di file non supportato'), false);
         }
     }
-}).single('url_img');
+}).single('url_img'); // Cambia 'file' in 'url_img'
 
 const uploadMiddleware = (req, res, next) => {
     console.log("Inizio upload del file");
@@ -56,6 +56,10 @@ const uploadMiddleware = (req, res, next) => {
 
         console.log("File caricato con successo");
         console.log("File salvato in:", req.file.path);
+
+        // Aggiungi il percorso del file ai dati del modulo
+        req.body.url_img = req.file.filename;
+
         next();
     });
 };
