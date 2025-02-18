@@ -20,7 +20,10 @@ router.get("/:slug", roomController.show);
 router.post("/", upload.single("imageUpload"), roomController.postAppartemento);
 
 //POST di una recensione
-router.post("/:id/review", roomController.postReview)
+router.post("/:id/review", roomController.postReview);
+
+// POST di un contatto
+router.post("/:slug/contact", roomController.sendEmail);
 
 //MODIFY
 router.patch("/:id", roomController.addLike);

@@ -1,6 +1,7 @@
 const dbConnection = require("../dbConnection/dbConnection")
 const { body, validationResult, query } = require("express-validator")
 const { validateInputs, errorHandler } = require("../middleware/errorsHandlers");
+const nodemailer = require("nodemailer");  // Importiamo il modulo nodemailer   
 
 const index = (req, res, next) => {
     const sql = "SELECT * FROM house ORDER BY likes DESC"
@@ -334,6 +335,76 @@ const postReview = [
         });
     }
 ];
+const sendEmail = (req, res, next) => {
+    const { name, sender, subject, message } = req.body;
+    console.log("Email ricevuta:", req.body);
+
+    const slug = req.params.slug;
+    const sql = `SELECT email FROM house WHERE slug = ?`;
+
+    try {
+        // Recupera email del proprietario da MySQL
+        dbConnection.query(sql, [slug], (err, rows) => {
+                if (err) {
+                    console.error('Errore nella query:', err);
+                    return res.status(500).json({ error: 'Errore nel recupero dell\'email' });
+                }
+
+                console.log('Risultato query:', rows);
+
+                if (rows.length === 0) {
+                    return res.status(404).json({ error: 'Proprietario non trovato' });
+                }
+
+                const ownerEmail = rows[0].email;
+
+                // Configura il trasportatore per Mailtrap
+                const transporter = nodemailer.createTransport({
+                    host: process.env.MAILTRAP_HOST,
+                    port: process.env.MAILTRAP_PORT,
+                    auth: {
+                        user: process.env.MAILTRAP_USER,
+                        pass: process.env.MAILTRAP_PASSWORD,
+                    },
+                    
+                });
+                console.log('Credenziali Mailtrap:', {
+                    host: process.env.MAILTRAP_HOST,
+                    port: process.env.MAILTRAP_PORT,
+                    user: process.env.MAILTRAP_USER,
+                    pass: process.env.MAILTRAP_PASSWORD,
+                  });
+
+                // Definisci il mittente dinamico (nome + email)
+                const from = `"${name}" <${sender}>`;
+
+                // Definisci le opzioni dell'email
+                const mailOptions = {
+                    from,                    // Mittente dinamico
+                    to: ownerEmail,          // Email del proprietario
+                    subject,                 // Oggetto dell'email
+                    text: message,           // Messaggio
+                };
+
+                // Invia l'email
+                transporter.sendMail(mailOptions, (err, info) => {
+                    if (err) {
+                        console.error('Errore nell\'invio dell\'email:', err);
+                        return res.status(500).json({ error: 'Errore durante l’invio dell’email' });
+                    }
+
+                    console.log('Email inviata con successo:', info);
+                    res.status(200).json({ message: 'Email inviata con successo' });
+                });
+            }
+        );
+    } catch (error) {
+        console.error('Errore:', error);
+        res.status(500).json({ error: 'Errore durante l’invio dell’email' });
+    }
+};
+
+
 
 
 
@@ -346,5 +417,6 @@ module.exports = {
     postReview,
     indexProperty,
     searchByCity,
-    searchByCityValidation
+    searchByCityValidation,
+    sendEmail
 }
