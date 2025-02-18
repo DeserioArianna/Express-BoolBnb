@@ -316,6 +316,8 @@ const postReview = [
 
             const houseId = result[0].id;
 
+            console.log(`Numero id casa: ${houseId}`)
+
             const currentDate = new Date().toISOString().split('T')[0];
 
             const insertReviewSQL = `
@@ -336,6 +338,7 @@ const postReview = [
         });
     }
 ];
+
 const sendEmail = (req, res, next) => {
     const { name, sender, subject, message } = req.body;
     console.log("Email ricevuta:", req.body);
