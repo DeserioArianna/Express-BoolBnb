@@ -16,11 +16,15 @@ router.get("/search", roomController.searchByCity);
 // SHOW
 router.get("/:slug", roomController.show);
 
+// POST di un contatto
+router.post("/:slug/contact", roomController.sendEmail);
+
 // POST
 router.post("/", uploadMiddleware, roomController.postAppartemento);
 
 // POST di una recensione
 router.post("/:slug/review", roomController.postReview);
+
 
 // MODIFY
 router.patch("/:id", roomController.addLike);

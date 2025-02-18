@@ -2,6 +2,7 @@ const express = require("express");
 const roomRouter = require("./routers/room")
 const {errorHandler} = require("./middleware/errorsHandlers")
 const cors = require("cors");
+require("dotenv").config();
 
 
 //creazione dell'app express
