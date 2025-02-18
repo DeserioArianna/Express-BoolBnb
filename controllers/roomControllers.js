@@ -313,12 +313,14 @@ const postReview = [
             }
 
             const houseId = result[0].id;
+            
 
             const currentDate = new Date().toISOString().split('T')[0];
 
             const insertReviewSQL = `
                 INSERT INTO review (id_house, review_content, username, length_of_stay, user_email, date) 
                 VALUES (?, ?, ?, ?, ?, ?)`;
+            console.log(houseId)
 
             dbConnection.query(insertReviewSQL, [houseId, reviewContent, username, lengthOfDay, user_email, currentDate], (err, result) => {
                 if (err) {
