@@ -114,7 +114,7 @@ const show = (req, res, next) => {
         const house = results[0];
         const houseId = house.id;
 
-        const sqlReviews = `SELECT * FROM review WHERE id_house = ?`;
+        const sqlReviews = `SELECT * FROM review WHERE id_house = ? ORDER BY date DESC`;
 
         dbConnection.query(sqlReviews, [houseId], (err, reviews) => {
             if (err) {
